@@ -81,8 +81,39 @@ func Update(db *sql.DB, tabella string, campi [3]string, valori [3]string, id in
 	return affect
 }
 
-func QuerySelect(db *sql.DB, tabella string) {
-	rows, err := db.Query("SELECT * FROM "+tabella+"")
+//rows.scan e relativo output hanno hardcodata l'attuale struttura tabella, passarla via argument (struct)
+func QuerySelect(db *sql.DB, what string, table string, where string) {
+	var queryString string
+	if what == "" {
+		what = "*"
+	}
+	if where == "" {
+		queryString = "SELECT "+what+" FROM "+table+""
+	} else {
+		queryString = "SELECT "+what+" FROM "+table+" WHERE "+where		
+	}
+	
+	rows, err := db.Query(queryString)
+	DoPanic(err)
+
+	for rows.Next() {
+		var uid int
+		var nome string
+		var username string
+		var password string
+		err = rows.Scan(&uid, &nome, &username, &password)
+		DoPanic(err)
+		fmt.Println(uid)
+		fmt.Println(nome)
+		fmt.Println(username)
+		fmt.Println(password)
+	}
+
+	fmt.Println(queryString)
+}
+
+func Query(db *sql.DB, query string) {
+	rows, err := db.Query(query)
 	DoPanic(err)
 
 	for rows.Next() {
@@ -109,7 +140,8 @@ func Delete(db *sql.DB, tabella string, id int64) {
 	affect, err := res.RowsAffected()
 	DoPanic(err)
 
-	fmt.Println(affect)
+	fmt.Print(affect)
+	fmt.Print(" row(s) eliminate")
 }
 
 func Close(db *sql.DB) {
